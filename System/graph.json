@@ -1,0 +1,100 @@
+{
+    "nodes": [
+        {
+            "id": 0,
+            "name": "reception"
+        },
+        {
+            "id": 1,
+            "name": "Patient Room 1"
+        },
+        {
+            "id": 3,
+            "name": "Patient Room 2"
+        },
+        {
+            "id": 4,
+            "name": "Patient Room 3"
+        },
+        {
+            "id": 5,
+            "name": "Patient Room 4"
+        },
+        {
+            "id": 6,
+            "name": "Patient Room 5"
+        },
+        {
+            "id": 7,
+            "name": "Patient Room 6"
+        },
+        {
+            "id": 8,
+            "name": "Patient Room 7"
+        },
+        {
+            "id": 9,
+            "name": "Patient Room 8"
+        },
+        {
+            "id": 10,
+            "name": "Patient Room 9"
+        },
+        {
+            "id": 11,
+            "name": "Patient Room 10"
+        }
+    ],
+    "connections": [
+        {
+            "node_a": 0,
+            "node_b": 1,
+            "distance": 2.5
+        },
+        {
+            "node_a": 1,
+            "node_b": 3,
+            "distance": 4.0
+        },
+        {
+            "node_a": 2,
+            "node_b": 4,
+            "distance": 3.0
+        },
+        {
+            "node_a": 3,
+            "node_b": 5,
+            "distance": 2.0
+        },
+        {
+            "node_a": 4,
+            "node_b": 6,
+            "distance": 3.5
+        },
+        {
+            "node_a": 5,
+            "node_b": 7,
+            "distance": 1.5
+        },
+        {
+            "node_a": 6,
+            "node_b": 8,
+            "distance": 2.0
+        },
+        {
+            "node_a": 7,
+            "node_b": 9,
+            "distance": 4.0
+        },
+        {
+            "node_a": 8,
+            "node_b": 10,
+            "distance": 3.0
+        },
+        {
+            "node_a": 9,
+            "node_b": 11,
+            "distance": 2.5
+        }
+    ]
+}
