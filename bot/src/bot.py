@@ -48,14 +48,20 @@ class Bot:
             return 
         
         path = self.navigator.determine_path(self.graph, self.current_node, next_node)
-        print(f'Path from {self.current_node} to {next_node}: {path}')
+        print(f'Path from {self.current_node.name} to {next_node.name}:')
+        for node in path[1:]:
+            print(f' - {node.name}')
 
         # Move
-        for node in path:
+        for node in path[1:]:
             self.walk_to_sister_node(node)
 
     def walk_to_sister_node(self, node: Node):
-        print(f'moving to {node.name}')
+        if node in self.current_node.neighbors:
+            print(f'moving to {node.name}')
+            self.current_node = node
+        else:
+            raise Exception(f'Can\'t move to {node.name} from {self.current_node.name}, not neighbours.')
 
     def run(self):
         """
@@ -75,8 +81,6 @@ class Bot:
             else:
                 command(params)
 
-            # raise NotImplementedError
-
     def listen_for_command(self) -> Tuple[Callable[..., Any], List[Any] | None]: # type: ignore
         # TEMPORARY MANUAL SOLUTION
         # WILL BE REPLACED WITH GEMINI SOLUTION
@@ -89,5 +93,8 @@ class Bot:
 
         command_selection = input('What is your input: ')
         command: Callable[..., Any] = self.command_map[command_selection]
-        
+        if command is None:
+            print("Unknown command. Please try again.")
+            return self.listen_for_command()
+
         return (command, None)
