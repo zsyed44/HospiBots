@@ -1,5 +1,4 @@
 from typing import Callable, List, Any
-import json
 from navigator import Navigator
 from graph import Graph, Node
 
@@ -129,78 +128,9 @@ class Bot:
 
 # --- Main execution to test the Bot ---
 if __name__ == "__main__":
-    json_data = """
-    {
-        "nodes": [
-            {
-                "id": 0,
-                "name": "service room"
-            },
-            {
-                "id": 1,
-                "name": "room 100"
-            },
-            {
-                "id": 2,
-                "name": "room 200"
-            },
-            {
-                "id": 3,
-                "name": "room 220"
-            },
-            {
-                "id": 4,
-                "name": "room 310"
-            },
-            {
-                "id": 5,
-                "name": "room 550"
-            }
-        ],
-        "connections": [
-            {
-                "node_a": 0,
-                "node_b": 1,
-                "distance": 5
-            },
-            {
-                "node_a": 1,
-                "node_b": 2,
-                "distance": 5
-            },
-            {
-                "node_a": 3,
-                "node_b": 4,
-                "distance": 5
-            },
-            {
-                "node_a": 4,
-                "node_b": 5,
-                "distance": 5
-            },
-            {
-                "node_a": 5,
-                "node_b": 2,
-                "distance": 5
-            },
-            {
-                "node_a": 1,
-                "node_b": 4,
-                "distance": 5
-            }
-        ]
-    }
-    """
-
     # 1. Parse JSON data and build the Graph
-    data = json.loads(json_data)
-    my_graph = Graph()
-
-    for node_data in data['nodes']:
-        my_graph.add_node(node_data['id'], node_data['name'])
-
-    for conn_data in data['connections']:
-        my_graph.add_connection(conn_data['node_a'], conn_data['node_b'], conn_data['distance'])
+    from graph_util import build_graph_from_json_file
+    my_graph = build_graph_from_json_file('../data/graph.json')
 
     # 2. Initialize the Bot
     starting_node_id = 0 # Start at "service room"
