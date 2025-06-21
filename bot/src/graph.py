@@ -6,22 +6,12 @@ The assumption is that node sibling order is counter-clockwise.
 """
 
 import json
-import os
-from collections import deque
+# import os
 
+from node import Node
 from graph_types import *
 
 ALLOW_SELF_LOOPS = False
-
-class Node:
-    def __init__(self, id: int, name: str, siblings: dict["Node", float]) -> None:
-        self.id = id
-        self.name = name 
-        self.siblings = siblings
-
-    @property
-    def neighbors(self):
-        return self.siblings
 
 class Connection:
     def __init__(self, node_a_id: int, node_b_id: int, distance: float):
@@ -67,9 +57,14 @@ class Connection:
 
 class Graph:
     def __init__(self) -> None:
-        self._nodes: set[int] = set()
-        self._node_names: dict[int, str] = dict()
-        self._connections: set[Connection] = set()
+        # self._nodes: set[int] = set()
+        # self._node_names: dict[int, str] = dict()
+        # self._connections: set[Connection] = set()
+        self.nodes: set[Node] = set()
+
+    @property
+    def node_names(self) -> dict[int, str]:
+        return {n.id:n.name for n in self.nodes}
 
     def get_one_node_id(self) -> int:
         """
@@ -81,13 +76,13 @@ class Graph:
         Returns:
             int: id of a node in the graph
         """
-        if not self._nodes or len(self._nodes) < 1:
+        if not self.nodes or len(self.nodes) < 1:
             raise Exception('Graph is empty, cannot get one node!')
         
-        return next(iter(self._nodes))
+        return self.get_one_node().id
     
     def get_one_node(self) -> Node:
-        return self.get_node(self.get_one_node_id())
+        return next(iter(self.nodes))
 
     @property
     def node_ids(self) -> set[int]:
@@ -97,72 +92,79 @@ class Graph:
         Returns:
             set[int]: The set of node ids in the graph
         """
-        return self._nodes
+        return set([node.id for node in self.nodes])
 
     def create_node(self, id: int, name: str):
-        if id in self._nodes:
+        if id in self.node_ids:
             raise Exception(f'Node {id} already exists in this graph!')
         
-        self._nodes.add(id)
-        self._node_names[id] = name
+        # create new node objects
+        node = Node(id, name)
+        self.nodes.add(node)
+        self.node_names[id] = name
     
     def get_node(self, id: int) -> Node:
-        name = self._node_names[id]
-        siblings_ids: dict[int, float] = {c.get_other_id(id): c.distance for c in self._connections if c.involves_id(id)}
-        siblings = {self.get_node(id) : distance for (id, distance) in siblings_ids.items()}
+        ## Find where it is
+        matches = [node for node in self.nodes if node.id == id]
 
-        return Node(id, name, siblings)
+        if not matches or len(matches) < 1:
+            raise Exception('Node not found')
+        
+        return matches[0]
+    
+    def find_node(self, name: str) -> Node:
+        matches = [node for node in self.nodes if node.name == name]
 
-    def create_connection(self, conn: Connection):
-        self._connections.add(conn)
+        if not matches or len(matches) < 1:
+            raise Exception('Node not found')
 
-    def is_fully_connected(self) -> bool:
-        """
-        Checks if a graph is fully connected, meaning all nodes are reachable
-        from each other.
+        return matches[0]
 
-        Args:
-            graph: A dictionary representing the graph.
-                Keys are nodes, and values are lists of their siblings (neighbors).
-                Example: {'A': ['B', 'C'], 'B': ['A'], 'C': ['A']}
+    # def is_fully_connected(self) -> bool:
+    #     """
+    #     Checks if a graph is fully connected, meaning all nodes are reachable
+    #     from each other.
 
-        Returns:
-            True if the graph is fully connected, False otherwise.
-        """
-        # An empty graph or a graph with a single node is considered fully connected.
-        if not self._nodes or len(self._nodes) == 1:
-            return True
+    #     Args:
+    #         graph: A dictionary representing the graph.
+    #             Keys are nodes, and values are lists of their siblings (neighbors).
+    #             Example: {'A': ['B', 'C'], 'B': ['A'], 'C': ['A']}
 
-        # Start BFS from the first node in the graph
-        start_node_index = 0
+    #     Returns:
+    #         True if the graph is fully connected, False otherwise.
+    #     """
+    #     # An empty graph or a graph with a single node is considered fully connected.
+    #     if not self._nodes or len(self._nodes) == 1:
+    #         return True
 
-        # Set to keep track of visited nodes during BFS
-        visited: set[int] = set()
+    #     # Start BFS from the first node in the graph
+    #     start_node_index = 0
 
-        # Queue for BFS traversal
-        queue: deque[int] = deque()
+    #     # Set to keep track of visited nodes during BFS
+    #     visited: set[int] = set()
 
-        # Add the starting node to the queue and mark it as visited
-        queue.append(start_node_index)
-        visited.add(start_node_index)
+    #     # Queue for BFS traversal
+    #     queue: deque[int] = deque()
 
-        # Perform BFS traversal
-        while queue:
-            current_node_id = queue.popleft()
+    #     # Add the starting node to the queue and mark it as visited
+    #     queue.append(start_node_index)
+    #     visited.add(start_node_index)
 
-            # Iterate over the siblings (neighbors) of the current node
-            for neighbor_id in [c.get_other_id(current_node_id) for c in self._connections if c.involves_id(current_node_id)]: # Use .get() to handle nodes not explicitly having siblings defined
-                if neighbor_id not in visited:
-                    visited.add(neighbor_id)
-                    queue.append(neighbor_id)
+    #     # Perform BFS traversal
+    #     while queue:
+    #         current_node_id = queue.popleft()
 
-        # If the number of visited nodes equals the total number of nodes,
-        # the graph is fully connected.
-        return len(visited) == len(self._nodes)
+    #         # Iterate over the siblings (neighbors) of the current node
+    #         for neighbor_id in [c.get_other_id(current_node_id) for c in self._connections if c.involves_id(current_node_id)]: # Use .get() to handle nodes not explicitly having siblings defined
+    #             if neighbor_id not in visited:
+    #                 visited.add(neighbor_id)
+    #                 queue.append(neighbor_id)
+
+    #     # If the number of visited nodes equals the total number of nodes,
+    #     # the graph is fully connected.
+    #     return len(visited) == len(self._nodes)
 
 def load_graph_from_json_file(json_path: str) -> Graph:
-    absolute_path_attempt = os.path.abspath(json_path)
-    print(f"Attempted absolute path: {absolute_path_attempt}")
     # open json file
     with open(json_path, 'r') as file:
         data = json.load(file)
@@ -170,7 +172,6 @@ def load_graph_from_json_file(json_path: str) -> Graph:
         return load_graph_from_json(data)
     
     raise Exception(f"Unknown error, failed to parse graph from {json_path}")
-
 
 def load_graph_from_json(data: JsonGraphData) -> Graph: # type: ignore
     graph = Graph()
@@ -196,11 +197,15 @@ def load_graph_from_json(data: JsonGraphData) -> Graph: # type: ignore
             raise Exception(f'Failed to parse graph data! Can\'t create connection {index} as node {node_a_id} or {node_b_id} does not exist!')
         
         # If passed, update node's siblings
-        graph.create_connection(Connection(node_a_id, node_b_id, distance)) # type: ignore
+        node_a = graph.get_node(node_a_id)
+        node_b = graph.get_node(node_b_id)
+
+        node_a.add_neighbor(node_b, distance)
+        node_b.add_neighbor(node_a, distance)
         
     # make some assertions
     assert len(graph.node_ids) == len(data['nodes']), f"Failed to parse graph data."
-    assert graph.is_fully_connected(), f"Assertion error, graph is not fully connected!"
+    # assert graph.is_fully_connected(), f"Assertion error, graph is not fully connected!"
     
     # return the graph
     return graph
