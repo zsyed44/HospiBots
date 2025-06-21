@@ -8,6 +8,8 @@ The assumption is that node sibling order is counter-clockwise.
 import json
 from collections import deque
 
+from graph_types import *
+
 ALLOW_SELF_LOOPS = False
 
 class Node:
@@ -135,41 +137,45 @@ class Graph:
         # the graph is fully connected.
         return len(visited) == len(self._nodes)
 
-def load_graph_from_json(json_path: str) -> Graph:
-    graph = Graph()
-
+def load_graph_from_json_file(json_path: str) -> Graph:
     # open json file
     with open(json_path, 'r') as file:
         data = json.load(file)
 
-        # create all the nodes first
-        for nodeData in data['nodes']:
-            id = int(nodeData['id'])
-            name = str(nodeData['name'])
-            graph.create_node(id, name)
-
-        # then populate their siblings
-        for index, connection in enumerate(data['connections']):
-            node_a_id: int = connection['node_a']
-            node_b_id: int = connection['node_b']
-            distance: float = connection['distance']
-
-            # Check if self-loops are allowed
-            if not ALLOW_SELF_LOOPS and node_a_id == node_b_id:
-                raise Exception(f'Failed to parse {json_path}, self-loop in connection {index} between {node_a_id} and {node_b_id} is not allowed.')
-
-            # Check if these nodes exist
-            if {node_a_id, node_b_id}.intersection(graph.node_ids):
-                raise Exception(f'Failed to parse graph! Can\'t create connection {index} as node {node_a_id} or {node_b_id} does not exist!')
-            
-            # If passed, update node's siblings
-            graph.create_connection(Connection(node_a_id, node_b_id, distance))
-            
-        # make some assertions
-        assert len(graph.node_ids) == len(data['nodes']), f"Failed to parse {json_path}."
-        assert graph.is_fully_connected(), f"Assertion error, graph is not fully connected!"
-        
-        # return the graph
-        return graph
-
+        return load_graph_from_json(data)
+    
     raise Exception(f"Unknown error, failed to parse graph from {json_path}")
+
+
+def load_graph_from_json(data: JsonGraphData) -> Graph: # type: ignore
+    graph = Graph()
+
+    # create all the nodes first
+    for nodeData in data['nodes']:
+        id = int(nodeData['id'])
+        name = str(nodeData['name'])
+        graph.create_node(id, name)
+
+    # then populate their siblings
+    for index, connection in enumerate(data['connections']):
+        node_a_id: int = connection['node_a']
+        node_b_id: int = connection['node_b']
+        distance: float = connection['distance']
+
+        # Check if self-loops are allowed
+        if not ALLOW_SELF_LOOPS and node_a_id == node_b_id:
+            raise Exception(f'Failed to parse graph data, self-loop in connection {index} between {node_a_id} and {node_b_id} is not allowed.')
+
+        # Check if these nodes exist
+        if {node_a_id, node_b_id}.issubset(graph.node_ids):
+            raise Exception(f'Failed to parse graph data! Can\'t create connection {index} as node {node_a_id} or {node_b_id} does not exist!')
+        
+        # If passed, update node's siblings
+        graph.create_connection(Connection(node_a_id, node_b_id, distance)) # type: ignore
+        
+    # make some assertions
+    assert len(graph.node_ids) == len(data['nodes']), f"Failed to parse graph data."
+    assert graph.is_fully_connected(), f"Assertion error, graph is not fully connected!"
+    
+    # return the graph
+    return graph

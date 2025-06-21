@@ -1,10 +1,38 @@
 from navigator import Navigator
+from graph import Graph, load_graph_from_json
+
+SPIDER_URL = 'localhost:3000'
+NAVGRAPH_ENDPOINT = SPIDER_URL + '/api/v1/navgraph'
+
+def get_nav_graph() -> Graph:
+    """
+    Loads a nav graph for the bot.
+    By default loads from server endpoint, then from backup in data dir
+
+    Returns:
+        Graph: _description_
+    """
+
+    import requests
+    import json 
+
+    res = requests.get(NAVGRAPH_ENDPOINT)
+    response = json.loads(res.text)
+
+    graph = load_graph_from_json(response)
+
+    return graph
+    
 
 class Bot:
-    def __init__(self) -> None:
-        self.navigator = Navigator()
+    do_shutdown = False
 
-        self.do_shutdown = False
+    def __init__(self) -> None:
+        # pull the navgraph
+        self.graph = get_nav_graph()
+
+        # Set navigator
+        self.navigator = Navigator()
 
     def run(self):
         """
