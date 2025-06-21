@@ -6,6 +6,7 @@ The assumption is that node sibling order is counter-clockwise.
 """
 
 import json
+import os
 from collections import deque
 
 from graph_types import *
@@ -59,12 +60,34 @@ class Connection:
         
         else:
             return False
+        
+    def __hash__(self) -> int:
+        # Generate a hash based on the immutable attributes that determine equality.
+        return hash((self.node_a_id, self.node_b_id))
 
 class Graph:
     def __init__(self) -> None:
         self._nodes: set[int] = set()
         self._node_names: dict[int, str] = dict()
         self._connections: set[Connection] = set()
+
+    def get_one_node_id(self) -> int:
+        """
+        Returns a node id from this graph. No guarantee of where this comes from or anything about it but it is in the graph.
+
+        Raises:
+            Exception: _description_
+
+        Returns:
+            int: id of a node in the graph
+        """
+        if not self._nodes or len(self._nodes) < 1:
+            raise Exception('Graph is empty, cannot get one node!')
+        
+        return next(iter(self._nodes))
+    
+    def get_one_node(self) -> Node:
+        return self.get_node(self.get_one_node_id())
 
     @property
     def node_ids(self) -> set[int]:
@@ -138,6 +161,8 @@ class Graph:
         return len(visited) == len(self._nodes)
 
 def load_graph_from_json_file(json_path: str) -> Graph:
+    absolute_path_attempt = os.path.abspath(json_path)
+    print(f"Attempted absolute path: {absolute_path_attempt}")
     # open json file
     with open(json_path, 'r') as file:
         data = json.load(file)
@@ -167,7 +192,7 @@ def load_graph_from_json(data: JsonGraphData) -> Graph: # type: ignore
             raise Exception(f'Failed to parse graph data, self-loop in connection {index} between {node_a_id} and {node_b_id} is not allowed.')
 
         # Check if these nodes exist
-        if {node_a_id, node_b_id}.issubset(graph.node_ids):
+        if not {node_a_id, node_b_id}.intersection(graph.node_ids):
             raise Exception(f'Failed to parse graph data! Can\'t create connection {index} as node {node_a_id} or {node_b_id} does not exist!')
         
         # If passed, update node's siblings
