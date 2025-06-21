@@ -1,0 +1,19 @@
+{
+    "nodes": [
+        {
+            "id": 0,
+            "name": "service room"
+        },
+        {
+            "id": 1,
+            "name": "room 100"
+        }
+    ],
+    "connections": [
+        {
+            "node_a": 0,
+            "node_b": 1,
+            "distance": 5
+        }
+    ]
+}
