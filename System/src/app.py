@@ -202,4 +202,4 @@ def get_patients():
 
 if __name__ == "__main__":
     print("Starting Flask API server on http://127.0.0.1:3000")
-    app.run(debug=True, port=3000)
+    app.run(host="0.0.0.0", debug=True, port=3000)
