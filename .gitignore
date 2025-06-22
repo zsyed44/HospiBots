@@ -1,6 +1,5 @@
+**/__pycache__
+**/.env
 **/.venv/
 **/.DS_Store
-**/__pycache__
-bot/src/__pycache__/graph.cpython-313.pyc
-bot/src/__pycache__/navigator.cpython-313.pyc
 **/node_modules/
