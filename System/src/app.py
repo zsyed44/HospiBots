@@ -195,8 +195,11 @@ def handle_command():
         "log": log
     })
 
+@app.route("/api/patients", methods=["GET"])
+def get_patients():
+    patients = list(db.patients.find({}, {'_id': 0}))
+    return jsonify(patients)
 
-if __name__ == '__main__':
-    # Flask backend will run on port 5000 to avoid conflict with React's default 3000
-    print("Starting Flask API server on http://127.0.0.1:8080")
-    app.run(debug=True, port=8080)
+if __name__ == "__main__":
+    print("Starting Flask API server on http://127.0.0.1:3000")
+    app.run(debug=True, port=3000)

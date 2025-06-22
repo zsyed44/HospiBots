@@ -13,11 +13,14 @@ import Tasks from './pages/Tasks';
 import VoiceControl from './pages/VoiceControl';
 
 import './App.css';
+import Prescriptions from './pages/Perscriptions';
+import Patients from './pages/Patients';
 
 const PorterUI = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [bots, setBots] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Fetch data from API
@@ -32,6 +35,12 @@ const PorterUI = () => {
     fetch(`${baseURL}/api/tasks`)
       .then(res => res.json())
       .then(data => setTasks(data))
+      .catch(err => console.error("Failed to fetch tasks:", err));
+
+
+    fetch(`${baseURL}/api/patients`)
+      .then(res => res.json())
+      .then(data => setPatients(data))
       .catch(err => console.error("Failed to fetch tasks:", err));
   }, []);
 
@@ -53,11 +62,12 @@ const PorterUI = () => {
         return <VoiceControl />;
       case 'prescriptions':
         return (
-          <PlaceholderPage
-            icon={Pill}
-            title="Prescriptions"
-            description="Prescription management coming soon..."
-          />
+          // <PlaceholderPage
+          //   icon={Pill}
+          //   title="Prescriptions"
+          //   description="Prescription management coming soon..."
+          // />
+          <Prescriptions />
         );
       case 'scribing':
         return (
@@ -69,11 +79,7 @@ const PorterUI = () => {
         );
       case 'patients':
         return (
-          <PlaceholderPage
-            icon={Users}
-            title="Patients"
-            description="Patient management coming soon..."
-          />
+          <Patients patients={ patients } />
         );
       case 'settings':
         return (
@@ -91,10 +97,10 @@ const PorterUI = () => {
   return (
     <div className="app">
       <Header currentTime={currentTime} />
-      
+
       <div className="layout">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        
+
         <main className="main">
           {renderMainContent()}
         </main>
