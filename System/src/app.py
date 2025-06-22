@@ -5,10 +5,7 @@ from dotenv import load_dotenv
 import os
 import sys
 import json
-
-import certifi
-
-os.environ['SSL_CERT_FILE'] = certifi.where()
+import ssl
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,7 +25,13 @@ if not MONGODB_URI:
     sys.exit(1) # Exit the application if essential configuration is missing
 
 try:
-    client = MongoClient(MONGODB_URI)
+    client = MongoClient(
+        MONGODB_URI,
+        ssl=True,
+        ssl_cert_reqs=ssl.CERT_NONE,
+        ssl_version=ssl.PROTOCOL_TLSv1_2,
+    )
+    
     db = client["porter_db"]  # Replace with your actual database name
     # Optional: Test connection to MongoDB
     client.admin.command('ping')
