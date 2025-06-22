@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import sys
 import json
+import ssl
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,13 +13,6 @@ load_dotenv()
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 BOT_SRC_PATH = os.path.join(BASE_DIR, 'bot', 'src')
 sys.path.insert(0, BOT_SRC_PATH)
-
-
-# Import your bot-related modules
-from bot import Bot
-from graph import Graph, Node
-import io
-import contextlib
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend access (important for React)
@@ -32,6 +26,7 @@ if not MONGODB_URI:
 
 try:
     client = MongoClient(MONGODB_URI)
+    
     db = client["porter_db"]  # Replace with your actual database name
     # Optional: Test connection to MongoDB
     client.admin.command('ping')
@@ -39,54 +34,6 @@ try:
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
     sys.exit(1) # Exit if cannot connect to DB
-
-
-# --- Bot Initialization ---
-porter_bot = None
-
-# Define the path to the bot's data directory
-BOT_DATA_PATH = os.path.join(BASE_DIR, 'bot', 'data')
-
-def initialize_bot():
-    """Initializes the bot and graph data globally for the Flask app."""
-    global porter_bot
-    if porter_bot is not None:
-        print("Bot already initialized.")
-        return # Bot already initialized
-
-    print("Initializing Porter Bot for API...")
-    try:
-        # Load graph data - assuming graph.json is in bot/data/
-        graph_file_path = os.path.join(BOT_DATA_PATH, 'graph.json')
-        print(f"Attempting to load graph from: {graph_file_path}")
-        with open(graph_file_path, 'r') as f:
-            data = json.load(f)
-
-        my_graph = Graph()
-        for node_data in data['nodes']:
-            my_graph.add_node(node_data['id'], node_data['name'])
-        for conn_data in data['connections']:
-            my_graph.add_connection(conn_data['node_a'], conn_data['node_b'], conn_data['distance'])
-
-        starting_node_id = 0 # As per your existing setup (service room)
-        starting_node = my_graph.get_node_by_id(starting_node_id)
-
-        if not starting_node:
-            raise ValueError(f"Starting node with ID {starting_node_id} not found in graph.json.")
-
-        porter_bot = Bot(id="Porter-001", graph=my_graph, starting_node=starting_node)
-        print("Porter Bot initialized successfully!")
-
-    except FileNotFoundError:
-        print(f"Error: graph.json not found at {graph_file_path}. Please ensure the graph data file exists.")
-        sys.exit(1) # Exit if essential file is missing
-    except Exception as e:
-        print(f"An error occurred during bot initialization: {e}")
-        sys.exit(1) # Exit on critical error
-
-# Call initialization function when the Flask app starts
-with app.app_context():
-    initialize_bot()
 
 # --- API Endpoints ---
 
@@ -202,4 +149,4 @@ def get_patients():
 
 if __name__ == "__main__":
     print("Starting Flask API server on http://127.0.0.1:3000")
-    app.run(debug=True, port=3000)
+    app.run(host="0.0.0.0", debug=True, port=3000)
