@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Bot, 
-  Navigation, 
-  Package, 
-  FileText, 
-  Pill, 
-  Users, 
-  Settings, 
-  Activity, 
-  Clock, 
-  MapPin, 
-  Mic, 
+import {
+  Bot,
+  Navigation,
+  Package,
+  FileText,
+  Pill,
+  Users,
+  Settings,
+  Activity,
+  Clock,
+  MapPin,
+  Mic,
   MicOff,
   Play,
   Pause,
@@ -28,17 +28,23 @@ import './App.css';
 
 const PorterUI = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [bots, setBots] = useState([
-    { id: 1, name: 'Porter-01', status: 'active', location: 'Room 204', battery: 85, task: 'Delivery to Room 301', priority: 'normal' },
-    { id: 2, name: 'Porter-02', status: 'charging', location: 'Charging Station A', battery: 45, task: null, priority: null },
-    { id: 3, name: 'Porter-03', status: 'active', location: 'Pharmacy', battery: 92, task: 'Prescription pickup', priority: 'high' }
-  ]);
-  
-  const [tasks, setTasks] = useState([
-    { id: 1, type: 'delivery', priority: 'high', room: '301', item: 'Medical supplies', status: 'in-progress', assignedBot: 'Porter-01' },
-    { id: 2, type: 'scribing', priority: 'normal', room: '205', nurse: 'Sarah Johnson', status: 'pending', assignedBot: null },
-    { id: 3, type: 'comfort', priority: 'low', room: '102', request: 'Water and snacks', status: 'queued', assignedBot: null }
-  ]);
+  const [bots, setBots] = useState([]);
+
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+    fetch(`${baseURL}/api/bots`)
+      .then(res => res.json())
+      .then(data => setBots(data))
+      .catch(err => console.error("Failed to fetch bots:", err));
+
+    fetch(`${baseURL}/api/tasks`)
+      .then(res => res.json())
+      .then(data => setTasks(data))
+      .catch(err => console.error("Failed to fetch tasks:", err));
+  }, []);
 
   const [isListening, setIsListening] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -49,7 +55,7 @@ const PorterUI = () => {
   }, []);
 
   const getPriorityColor = (priority) => {
-    switch(priority) {
+    switch (priority) {
       case 'critical': return '#ef4444';
       case 'high': return '#f97316';
       case 'normal': return '#3b82f6';
@@ -59,7 +65,7 @@ const PorterUI = () => {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'active': return '#22c55e';
       case 'charging': return '#eab308';
       case 'offline': return '#ef4444';
@@ -99,7 +105,7 @@ const PorterUI = () => {
           <span>{bot.battery}%</span>
         </div>
       </div>
-      
+
       <div className="bot-details">
         <div className="bot-location">
           <MapPin size={16} />
@@ -112,11 +118,11 @@ const PorterUI = () => {
           </div>
         )}
       </div>
-      
+
       {bot.priority && (
         <div className="bot-priority">
-          <div 
-            className="priority-dot" 
+          <div
+            className="priority-dot"
             style={{ backgroundColor: getPriorityColor(bot.priority) }}
           ></div>
           <span>{bot.priority} priority</span>
@@ -129,8 +135,8 @@ const PorterUI = () => {
     <div className="task-item">
       <div className="task-content">
         <div className="task-header">
-          <div 
-            className="priority-dot" 
+          <div
+            className="priority-dot"
             style={{ backgroundColor: getPriorityColor(task.priority) }}
           ></div>
           <span className="task-type">{task.type}</span>
@@ -245,7 +251,7 @@ const PorterUI = () => {
   const renderVoiceControl = () => (
     <div className="page">
       <h1>Voice Control</h1>
-      
+
       <div className="voice-panel">
         <div className="voice-center">
           <div className={`voice-circle ${isListening ? 'listening' : ''}`}>
@@ -255,14 +261,14 @@ const PorterUI = () => {
               <MicOff size={40} style={{ color: '#6b7280' }} />
             )}
           </div>
-          
+
           <h2>
             {isListening ? 'Listening...' : 'Voice Commands'}
           </h2>
           <p className="voice-description">
             {isListening ? 'Say "Porter" followed by your command' : 'Click to start voice control'}
           </p>
-          
+
           <button
             onClick={() => setIsListening(!isListening)}
             className={isListening ? 'stop-button' : 'primary-button'}
@@ -313,7 +319,7 @@ const PorterUI = () => {
               <p>Hospital Bot Management</p>
             </div>
           </div>
-          
+
           <div className="header-right">
             <div className="header-status">
               <Clock size={16} />
