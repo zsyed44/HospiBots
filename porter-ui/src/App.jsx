@@ -22,7 +22,9 @@ import {
   Plus,
   Search,
   Filter,
-  MoreVertical
+  MoreVertical,
+  X,
+  ChevronDown
 } from 'lucide-react';
 import './App.css';
 
@@ -31,6 +33,15 @@ const PorterUI = () => {
   const [bots, setBots] = useState([]);
 
   const [tasks, setTasks] = useState([]);
+  const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+  const [newTaskForm, setNewTaskForm] = useState({
+    type: 'delivery',
+    priority: 'normal', 
+    room: ''
+  });
+
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
 
   useEffect(() => {
     const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -185,7 +196,7 @@ const PorterUI = () => {
         <div className="panel">
           <div className="panel-header">
             <h2>Recent Tasks</h2>
-            <button className="primary-button">
+            <button className="primary-button" onClick={() => setShowNewTaskModal(true)}>
               <Plus size={16} />
               New Task
             </button>
@@ -233,10 +244,10 @@ const PorterUI = () => {
             <Search size={16} />
             <input type="text" placeholder="Search tasks..." />
           </div>
-          <button className="primary-button">
-            <Plus size={16} />
-            New Task
-          </button>
+            <button className="primary-button" onClick={() => setShowNewTaskModal(true)}>
+              <Plus size={16} />
+              New Task
+            </button>
         </div>
       </div>
 
@@ -293,6 +304,31 @@ const PorterUI = () => {
       </div>
     </div>
   );
+
+  const handleCreateTask = async (e) => {
+  e.preventDefault();
+  
+  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+  
+  try {
+    const response = await fetch(`${baseURL}/api/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newTaskForm)
+    });
+
+    if (response.ok) {
+      const newTask = await response.json();
+      setTasks([...tasks, newTask]);
+      setShowNewTaskModal(false);
+      setNewTaskForm({ type: 'delivery', priority: 'normal', room: '' });
+    }
+  } catch (error) {
+    console.error('Error creating task:', error);
+  }
+};
 
   const navigation = [
     { id: 'dashboard', label: 'Dashboard', icon: Activity },
@@ -353,6 +389,103 @@ const PorterUI = () => {
             })}
           </ul>
         </nav>
+
+        {/* New Task Modal */}
+{showNewTaskModal && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <div className="modal-header">
+        <h2>Create New Task</h2>
+        <button onClick={() => setShowNewTaskModal(false)} className="icon-button">
+          <X size={20} />
+        </button>
+      </div>
+      <form onSubmit={handleCreateTask}>
+  <div className="form-field">
+    <label>Type</label>
+    <div className="custom-select">
+      <button 
+        type="button"
+        className="select-button"
+        onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+      >
+        {newTaskForm.type}
+        <ChevronDown size={16} />
+      </button>
+      {showTypeDropdown && (
+        <div className="dropdown-menu">
+          {['delivery', 'scribing', 'comfort'].map(type => (
+            <button
+              key={type}
+              type="button"
+              className="dropdown-item"
+              onClick={() => {
+                setNewTaskForm({...newTaskForm, type});
+                setShowTypeDropdown(false);
+              }}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+  
+  <div className="form-field">
+    <label>Priority</label>
+    <div className="custom-select">
+      <button 
+        type="button"
+        className="select-button"
+        onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
+      >
+        {newTaskForm.priority}
+        <ChevronDown size={16} />
+      </button>
+      {showPriorityDropdown && (
+        <div className="dropdown-menu">
+          {['low', 'normal', 'high', 'critical'].map(priority => (
+            <button
+              key={priority}
+              type="button"
+              className="dropdown-item"
+              onClick={() => {
+                setNewTaskForm({...newTaskForm, priority});
+                setShowPriorityDropdown(false);
+              }}
+            >
+              {priority}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+  
+  <div className="form-field">
+    <label>Room</label>
+    <input 
+      type="text" 
+      placeholder="e.g. 301"
+      value={newTaskForm.room}
+      onChange={(e) => setNewTaskForm({...newTaskForm, room: e.target.value})}
+      required
+    />
+  </div>
+  
+  <div className="modal-actions">
+    <button type="button" onClick={() => setShowNewTaskModal(false)} className="secondary-button">
+      Cancel
+    </button>
+    <button type="submit" className="primary-button">
+      Create Task
+    </button>
+  </div>
+</form>
+    </div>
+  </div>
+)}
 
         {/* Main Content */}
         <main className="main">
