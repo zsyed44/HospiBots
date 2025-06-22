@@ -6,6 +6,12 @@
 
 **PORTER** is a robotic companion designed to assist healthcare professionals by taking over repetitive, non-clinical tasks. Inspired by the overload faced by nurses in hospitals, PORTER aims to be an intelligent, mobile solution that saves time, reduces stress, and enhances patient care.
 
+**Contributors:**
+- Aly Ashour
+- Dev Chaudhari
+- Obaid Mohiuddin
+- Zain Syed
+
 ---
 
 ## Healing on Hold: The Problem
