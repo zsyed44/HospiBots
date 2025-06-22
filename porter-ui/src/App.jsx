@@ -40,6 +40,7 @@ const PorterUI = () => {
     room: ''
   });
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
 
@@ -83,6 +84,20 @@ const PorterUI = () => {
       default: return '#6b7280';
     }
   };
+
+  const filteredTasks = tasks.filter(task => {
+  if (!searchQuery) return true;
+  
+  const query = searchQuery.toLowerCase();
+  return (
+    task.type.toLowerCase().includes(query) ||
+    task.room.toLowerCase().includes(query) ||
+    task.priority.toLowerCase().includes(query) ||
+    (task.item && task.item.toLowerCase().includes(query)) ||
+    (task.nurse && task.nurse.toLowerCase().includes(query)) ||
+    (task.request && task.request.toLowerCase().includes(query))
+  );
+});
 
   const StatCard = ({ title, value, icon: Icon, trend, color = "#1e293b" }) => (
     <div className="stat-card" style={{ backgroundColor: color }}>
@@ -203,8 +218,8 @@ const PorterUI = () => {
           </div>
           <div className="tasks-list">
             {tasks.slice(0, 3).map(task => (
-              <TaskItem key={task.id} task={task} />
-            ))}
+  <TaskItem key={task.task_id} task={task} />
+))}
           </div>
         </div>
       </div>
@@ -242,7 +257,12 @@ const PorterUI = () => {
         <div className="page-actions">
           <div className="search-box">
             <Search size={16} />
-            <input type="text" placeholder="Search tasks..." />
+            <input 
+              type="text" 
+              placeholder="Search tasks..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
             <button className="primary-button" onClick={() => setShowNewTaskModal(true)}>
               <Plus size={16} />
@@ -252,10 +272,10 @@ const PorterUI = () => {
       </div>
 
       <div className="tasks-list">
-        {tasks.map(task => (
-          <TaskItem key={task.id} task={task} />
-        ))}
-      </div>
+  {filteredTasks.map(task => (
+    <TaskItem key={task.task_id} task={task} />
+  ))}
+</div>
     </div>
   );
 
