@@ -1,6 +1,12 @@
 from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
 
-client = MongoClient("mongodb+srv://dchaud26:EasVcErqT6FSbVCD@cluster0.wgvxeqr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+# Load environment variables
+load_dotenv()
+
+# TODO: move to .env
+client = MongoClient(os.environ.get("MONGODB_URI"))
 db = client["porter_db"]
 
 db.tasks.insert_many([
