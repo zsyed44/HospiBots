@@ -2,6 +2,8 @@ from typing import Callable, List, Any
 import json
 from navigator import Navigator
 from graph import Graph, Node
+from gcp import GCP
+from speech_recognizer import SimpleVoiceRecorder
 
 class Bot:
     def __init__(self, id: str, graph: Graph, starting_node: Node) -> None:
@@ -13,12 +15,12 @@ class Bot:
         # Set navigator
         self.navigator = Navigator()
         self.path_to_destination: List[Node] = [] # Stores the planned path
+       
+        self.gcp = GCP(self.current_node, self.graph)
+        self.gcp._setup_gemini() # Setup Gemini AI
 
-        self.possible_commands = [
-            "move to <room_name>",
-            "shutdown",
-        ]
-
+        self.voice_recorder = SimpleVoiceRecorder() 
+        
         self.command_map: dict[str, Callable[..., Any]] = { # type: ignore
             "move to": self.move_to_room,
             "shutdown": self.shutdown
@@ -34,16 +36,62 @@ class Bot:
         On input, they enter a command, and execute that command
         """
         print(f"Bot {self.id} started at {self.current_node.name}.")
-        while True:
-            self.listen_for_command()
+        while not self.gcp._do_shutdown:
+            # IMPORTANT: Update GCP with the bot's current location before listening.
+            self.gcp.current_node = self.current_node
 
+            # Get the parsed command from the GCP module.
+            if hasattr(self, "_get_user_input_from_source"):
+                user_input = self._get_user_input_from_source()
+            else:
+                user_input = self.gcp.listen_for_command()
+
+            # Pass the user input to GCP for Gemini parsing
+            command, params = self.gcp.parse_command_with_gemini(user_input)
+            # Execute actions based on the parsed command.
+            if command == 'move':
+                # Check if a destination was provided.
+                if params and params[0] is not None:
+                    self.move_to_room(params[0])
+                else:
+                    print("I'm ready to move, but you need to provide a destination.")
+            
+            elif command == 'shutdown':
+                self.shutdown()
+
+            elif command == 'unknown':
+                print("Sorry, I didn't understand that command. Please try again.")
+
+    def _get_user_input_from_source(self) -> str:
+        """
+        Provides a choice between typing and speaking,
+        and retrieves input accordingly.
+        """
+        if self.voice_recorder.speech_enabled:
+            # Loop until valid input (typed or spoken) is received
+            while True:
+                choice = input('Type command or press V for voice: ').strip().lower()
+                
+                if choice == 'v':
+                    spoken_text = self.voice_recorder.record_command()
+                    if spoken_text:
+                        return spoken_text
+                    else:
+                        print("Voice input failed or no speech detected. Please try again or type.")
+                else:
+                    return choice # Return typed input directly
+        else:
+            # If speech is not enabled, always fallback to typed input
+            return input('Your command: ').strip().lower()
+
+    """
     def listen_for_command(self):
         print('\n--- Hi I\'m Porter! How can I help? ---')
         print('Enter a command from these options:')
         for cmd in self.possible_commands:
             print(f"- {cmd}")
 
-        user_input = input('Your command: ').strip().lower()
+        user_input = input('Your command: ').strip().lower() # this is where the text to speech would be used
 
         # Simple command parsing
         command_found = False
@@ -62,7 +110,8 @@ class Bot:
 
         if not command_found:
             print("Sorry, I didn't understand that command. Please try again.")
-
+    """
+    
     def move_to_room(self, room_name: str):
         """
         Navigates the bot to the specified room using Dijkstra's algorithm.
@@ -129,85 +178,31 @@ class Bot:
 
 # --- Main execution to test the Bot ---
 if __name__ == "__main__":
-    json_data = """
-    {
-        "nodes": [
-            {
-                "id": 0,
-                "name": "service room"
-            },
-            {
-                "id": 1,
-                "name": "room 100"
-            },
-            {
-                "id": 2,
-                "name": "room 200"
-            },
-            {
-                "id": 3,
-                "name": "room 220"
-            },
-            {
-                "id": 4,
-                "name": "room 310"
-            },
-            {
-                "id": 5,
-                "name": "room 550"
-            }
-        ],
-        "connections": [
-            {
-                "node_a": 0,
-                "node_b": 1,
-                "distance": 5
-            },
-            {
-                "node_a": 1,
-                "node_b": 2,
-                "distance": 5
-            },
-            {
-                "node_a": 3,
-                "node_b": 4,
-                "distance": 5
-            },
-            {
-                "node_a": 4,
-                "node_b": 5,
-                "distance": 5
-            },
-            {
-                "node_a": 5,
-                "node_b": 2,
-                "distance": 5
-            },
-            {
-                "node_a": 1,
-                "node_b": 4,
-                "distance": 5
-            }
-        ]
-    }
-    """
+    # Ensure you have these files in the correct relative paths
+    try:
+        with open("../bot/data/graph.json") as f:
+            data = json.load(f)
 
-    # 1. Parse JSON data and build the Graph
-    data = json.loads(json_data)
-    my_graph = Graph()
+        my_graph = Graph()
 
-    for node_data in data['nodes']:
-        my_graph.add_node(node_data['id'], node_data['name'])
+        for node_data in data['nodes']:
+            my_graph.add_node(node_data['id'], node_data['name'])
 
-    for conn_data in data['connections']:
-        my_graph.add_connection(conn_data['node_a'], conn_data['node_b'], conn_data['distance'])
+        for conn_data in data['connections']:
+            my_graph.add_connection(conn_data['node_a'], conn_data['node_b'], conn_data['distance'])
 
-    # 2. Initialize the Bot
-    starting_node_id = 0 # Start at "service room"
-    starting_node = my_graph.get_node_by_id(starting_node_id)
+        starting_node_id = 0 # Start at the first node in the graph data
+        starting_node = my_graph.get_node_by_id(starting_node_id)
 
-    if starting_node:
-        porter_bot = Bot(id="Porter-001", graph=my_graph, starting_node=starting_node)
-        porter_bot.start()
-    else:
-        print("Error: Starting node not found.")
+        if starting_node:
+            porter_bot = Bot(id="Porter-001", graph=my_graph, starting_node=starting_node)
+            porter_bot.start()
+        else:
+            print(f"Error: Starting node with ID {starting_node_id} not found.")
+
+    except FileNotFoundError:
+        print("Error: `data/graph.json` not found. Please ensure the graph data file exists.")
+    except ImportError as e:
+        print(f"Error: A required module is missing. {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
