@@ -33,5 +33,5 @@ def update_graph():
     save_graph(data)
     return jsonify(data), 200
 
-# if __name__ == '__main__': for testing purposes
-#     app.run(debug=True, host='0.0.0.0', port=3000)
+if __name__ == '__main__': for testing purposes
+    app.run(debug=True, host='0.0.0.0', port=3000)
