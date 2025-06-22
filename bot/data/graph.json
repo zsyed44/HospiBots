@@ -2,27 +2,33 @@
     "nodes": [
         {
             "id": 0,
-            "name": "service room"
+            "name": "service room",
+            "type": "Service Room"
         },
         {
             "id": 1,
-            "name": "room 100"
+            "name": "room 100",
+            "type": "Patient Room"
         },
         {
             "id": 2,
-            "name": "room 200"
+            "name": "room 200",
+            "type": "Patient Washroom"
         },
         {
             "id": 3,
-            "name": "room 220"
+            "name": "room 220",
+            "type": "Patient Room"
         },
         {
             "id": 4,
-            "name": "room 310"
+            "name": "room 310",
+            "type": "Lounge Area"
         },
         {
             "id": 5,
-            "name": "room 550"
+            "name": "room 550",
+            "type": "Patient Room"
         }
     ],
     "connections": [
