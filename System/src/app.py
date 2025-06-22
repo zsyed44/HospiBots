@@ -26,10 +26,7 @@ if not MONGODB_URI:
 
 try:
     client = MongoClient(
-        MONGODB_URI,
-        ssl=True,
-        ssl_cert_reqs=ssl.CERT_NONE,
-        ssl_version=ssl.PROTOCOL_TLSv1_2,
+        MONGODB_URI
     )
     
     db = client["porter_db"]  # Replace with your actual database name
