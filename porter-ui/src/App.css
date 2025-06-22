@@ -634,6 +634,70 @@ body {
   color: #94a3b8;
 }
 
+/* Map Styles */
+.map-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f4f8; /* Light background for the map area */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hospital-map {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.map-connection {
+  stroke: #94a3b8; /* Slate gray for connections */
+  stroke-width: 2;
+}
+
+.map-node {
+  fill: #3b82f6; /* Blue for nodes */
+  stroke: #1e40af; /* Darker blue border */
+  stroke-width: 1.5;
+}
+
+.map-node-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  fill: #1f2937; /* Dark gray for node labels */
+  user-select: none;
+}
+
+.map-bot {
+  stroke: #ffffff;
+  stroke-width: 1.5;
+  transition: all 0.3s ease-in-out;
+}
+
+.map-bot.active {
+  fill: #22c55e; /* Green for active bots */
+}
+
+.map-bot.charging {
+  fill: #eab308; /* Yellow for charging bots */
+}
+
+.map-bot.offline {
+  fill: #ef4444; /* Red for offline bots */
+}
+
+.map-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  font-size: 18px;
+  color: #64748b;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .content-grid {

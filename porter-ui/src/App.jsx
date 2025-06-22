@@ -9,7 +9,7 @@ import {
   Settings,
   Activity,
   Clock,
-  MapPin,
+  MapPin, // Keep MapPin for the map button
   Mic,
   MicOff,
   Play,
@@ -25,12 +25,13 @@ import {
   MoreVertical
 } from 'lucide-react';
 import './App.css';
+import MapComponent from './MapComponent'; // Import the MapComponent
 
 const PorterUI = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [bots, setBots] = useState([]);
-
   const [tasks, setTasks] = useState([]);
+  const [showMap, setShowMap] = useState(false); // New state to toggle map visibility
 
   useEffect(() => {
     const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -205,6 +206,10 @@ const PorterUI = () => {
       <div className="page-header">
         <h1>Bot Fleet</h1>
         <div className="page-actions">
+          <button className="secondary-button" onClick={() => setShowMap(!showMap)}>
+            <MapPin size={16} />
+            {showMap ? 'Hide Map' : 'Show Map'}
+          </button>
           <button className="secondary-button">
             <Filter size={16} />
             Filter
@@ -215,6 +220,13 @@ const PorterUI = () => {
           </button>
         </div>
       </div>
+
+      {showMap && (
+        <div className="map-section">
+          <h2>Hospital Floor Plan</h2>
+          <MapComponent bots={bots} />
+        </div>
+      )}
 
       <div className="bots-grid">
         {bots.map(bot => (

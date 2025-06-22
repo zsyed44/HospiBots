@@ -52,6 +52,11 @@
             "distance": 2.5
         },
         {
+            "node_a": 4,
+            "node_b": 5,
+            "distance": 3.0
+        },
+        {
             "node_a": 1,
             "node_b": 3,
             "distance": 4.0
