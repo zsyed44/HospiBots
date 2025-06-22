@@ -6,6 +6,10 @@ import os
 import sys
 import json
 
+import certifi
+
+os.environ['SSL_CERT_FILE'] = certifi.where()
+
 # Load environment variables from .env file
 load_dotenv()
 
