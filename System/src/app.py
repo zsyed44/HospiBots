@@ -27,5 +27,10 @@ def get_tasks():
     tasks = list(db.tasks.find({}, {'_id': 0}))
     return jsonify(tasks)
 
+@app.route("/api/patients", methods=["GET"])
+def get_patients():
+    patients = list(db.patients.find({}, {'_id': 0}))
+    return jsonify(patients)
+
 if __name__ == "__main__":
     app.run(debug=True, port=3000)
