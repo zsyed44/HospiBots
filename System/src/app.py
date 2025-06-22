@@ -40,8 +40,10 @@ def create_task():
             'type': task_data['type'],
             'priority': task_data['priority'],
             'room': task_data['room'],
+            'description': task_data.get('description', ''),  # Add this
             'status': 'pending',
-            'assignedBot': None
+            'assignedBot': None,
+            'created_at': datetime.utcnow().isoformat()
         }
 
         db.tasks.insert_one(new_task)

@@ -37,12 +37,15 @@ const PorterUI = () => {
   const [newTaskForm, setNewTaskForm] = useState({
     type: 'delivery',
     priority: 'normal', 
-    room: ''
+    room: '',
+    description: ''
   });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
+  const [botFilter, setBotFilter] = useState('all');
+  const [showBotFilterDropdown, setShowBotFilterDropdown] = useState(false);
 
   useEffect(() => {
     const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -114,6 +117,11 @@ const PorterUI = () => {
     </div>
   );
 
+  const filteredBots = bots.filter(bot => {
+  if (botFilter === 'all') return true;
+  return bot.status === botFilter;
+});
+
   const BotCard = ({ bot }) => (
     <div className="bot-card">
       <div className="bot-header">
@@ -158,31 +166,30 @@ const PorterUI = () => {
   );
 
   const TaskItem = ({ task }) => (
-    <div className="task-item">
-      <div className="task-content">
-        <div className="task-header">
-          <div
-            className="priority-dot"
-            style={{ backgroundColor: getPriorityColor(task.priority) }}
-          ></div>
-          <span className="task-type">{task.type}</span>
-          <span className="task-room">Room {task.room}</span>
-        </div>
-        <p className="task-description">{task.item || task.request || task.nurse}</p>
-        {task.assignedBot && (
-          <p className="task-assigned">Assigned to {task.assignedBot}</p>
-        )}
+  <div className="task-item">
+    <div className="task-content">
+      <div className="task-header">
+        <div
+          className="priority-dot"
+          style={{ backgroundColor: getPriorityColor(task.priority) }}
+        ></div>
+        <span className="task-type">{task.type}</span>
+        <span className="task-room">Room {task.room}</span>
       </div>
-      <div className="task-actions">
-        <span className={`task-status ${task.status}`}>
-          {task.status}
-        </span>
-        <button className="task-menu">
-          <MoreVertical size={16} />
-        </button>
-      </div>
+      <p className="task-description">
+        {task.description || task.item || task.nurse || task.request || 'No description'}
+      </p>
+      {task.assignedBot && (
+        <p className="task-assigned">Assigned to {task.assignedBot}</p>
+      )}
     </div>
-  );
+    <div className="task-actions">
+      <span className={`task-status ${task.status}`}>
+        {task.status}
+      </span>
+    </div>
+  </div>
+);
 
   const renderDashboard = () => (
     <div className="dashboard">
@@ -197,14 +204,11 @@ const PorterUI = () => {
         <div className="panel">
           <div className="panel-header">
             <h2>Active Bots</h2>
-            <button className="icon-button">
-              <Settings size={20} />
-            </button>
           </div>
           <div className="bots-list">
             {bots.filter(bot => bot.status === 'active').map(bot => (
-              <BotCard key={bot.id} bot={bot} />
-            ))}
+  <BotCard key={bot.bot_id} bot={bot} />
+))}
           </div>
         </div>
 
@@ -217,38 +221,65 @@ const PorterUI = () => {
             </button>
           </div>
           <div className="tasks-list">
-            {tasks.slice(0, 3).map(task => (
-  <TaskItem key={task.task_id} task={task} />
-))}
+            {tasks
+  .sort((a, b) => {
+    // Sort by created_at if available, otherwise by task_id (newer first)
+    if (a.created_at && b.created_at) {
+      return new Date(b.created_at) - new Date(a.created_at);
+    }
+    return b.task_id - a.task_id;
+  })
+  .slice(0, 3)
+  .map(task => (
+    <TaskItem key={task.task_id} task={task} />
+  ))}
           </div>
         </div>
       </div>
     </div>
   );
 
-  const renderBots = () => (
-    <div className="page">
-      <div className="page-header">
-        <h1>Bot Fleet</h1>
-        <div className="page-actions">
-          <button className="secondary-button">
+const renderBots = () => (
+  <div className="page">
+    <div className="page-header">
+      <h1>Bot Fleet</h1>
+      <div className="page-actions">
+        <div className="custom-select">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setShowBotFilterDropdown(!showBotFilterDropdown)}
+          >
             <Filter size={16} />
-            Filter
+            Filter: {botFilter === 'all' ? 'All' : botFilter}
           </button>
-          <button className="primary-button">
-            <Plus size={16} />
-            Add Bot
-          </button>
+          {showBotFilterDropdown && (
+            <div className="dropdown-menu">
+              {['all', 'active', 'charging', 'offline'].map(status => (
+                <button
+                  key={status}
+                  type="button"
+                  className="dropdown-item"
+                  onClick={() => {
+                    setBotFilter(status);
+                    setShowBotFilterDropdown(false);
+                  }}
+                >
+                  {status === 'all' ? 'All Bots' : status}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      <div className="bots-grid">
-        {bots.map(bot => (
-          <BotCard key={bot.id} bot={bot} />
-        ))}
-      </div>
     </div>
-  );
+    <div className="bots-grid">
+      {filteredBots.map(bot => (
+        <BotCard key={bot.bot_id} bot={bot} />
+      ))}
+    </div>
+  </div>
+);
 
   const renderTasks = () => (
     <div className="page">
@@ -343,7 +374,7 @@ const PorterUI = () => {
       const newTask = await response.json();
       setTasks([...tasks, newTask]);
       setShowNewTaskModal(false);
-      setNewTaskForm({ type: 'delivery', priority: 'normal', room: '' });
+      setNewTaskForm({ type: 'delivery', priority: 'normal', room: '', description: '' });
     }
   } catch (error) {
     console.error('Error creating task:', error);
@@ -448,7 +479,9 @@ const PorterUI = () => {
             </button>
           ))}
         </div>
+        
       )}
+      
     </div>
   </div>
   
@@ -493,6 +526,15 @@ const PorterUI = () => {
       required
     />
   </div>
+
+  <div className="form-field">
+  <label>Description</label>
+  <input 
+    type="text" 
+    value={newTaskForm.description || ''}
+    onChange={(e) => setNewTaskForm({...newTaskForm, description: e.target.value})}
+  />
+</div>
   
   <div className="modal-actions">
     <button type="button" onClick={() => setShowNewTaskModal(false)} className="secondary-button">
