@@ -55,17 +55,17 @@ const Patients = ({ patients }) => {
     return matchesSearch && matchesFilter;
   });
 
+  // Updated PatientCard to match BotCard structure
   const PatientCard = ({ patient }) => (
     <div className="patient-card" onClick={() => setSelectedPatient(patient)}>
       <div className="patient-header">
         <div className="patient-info">
           <div className="patient-avatar">
-            <User size={24} />
+            <User size={20} style={{ color: getStatusColor(patient.status) }} />
           </div>
-          <div className="patient-details">
-            <h3>{patient.name}</h3>
+          <div>
+            <h3 className="patient-name">{patient.name}</h3>
             <p className="patient-id">{patient.id}</p>
-            <p className="patient-demographics">{patient.age}y • {patient.gender}</p>
           </div>
         </div>
         <div className="patient-status">
@@ -75,48 +75,30 @@ const Patients = ({ patients }) => {
           >
             {patient.status}
           </span>
-          <div 
-            className="risk-indicator"
-            style={{ backgroundColor: getRiskColor(patient.riskLevel) }}
-          >
-            {patient.riskLevel} risk
-          </div>
         </div>
       </div>
 
-      <div className="patient-location">
-        <MapPin size={16} />
-        <span>Room {patient.room} - Bed {patient.bed}</span>
-      </div>
-
-      <div className="patient-condition">
-        <h4>{patient.condition}</h4>
-        <p>Attending: {patient.doctor}</p>
-      </div>
-
-      <div className="patient-vitals-preview">
-        <div className="vital-item">
-          <Heart size={16} />
-          <span>{patient.vitals.heartRate}</span>
+      <div className="patient-details-section">
+        <div className="patient-location">
+          <MapPin size={16} />
+          Room {patient.room} - Bed {patient.bed}
         </div>
-        <div className="vital-item">
+        <div className="patient-condition-info">
           <Activity size={16} />
-          <span>{patient.vitals.bloodPressure}</span>
+          {patient.condition}
         </div>
-        <div className="vital-item">
-          <Thermometer size={16} />
-          <span>{patient.vitals.temperature}</span>
+        <div className="patient-vitals-info">
+          <Heart size={16} />
+          {patient.vitals.heartRate} • {patient.vitals.bloodPressure}
         </div>
       </div>
 
-      <div className="patient-footer">
-        <span className="admission-date">
-          <Calendar size={14} />
-          Admitted {patient.admissionDate}
-        </span>
-        <button className="icon-button">
-          <MoreVertical size={16} />
-        </button>
+      <div className="patient-priority">
+        <div
+          className="priority-dot"
+          style={{ backgroundColor: getRiskColor(patient.riskLevel) }}
+        ></div>
+        <span>{patient.riskLevel} risk • {patient.doctor}</span>
       </div>
     </div>
   );
@@ -316,14 +298,9 @@ const Patients = ({ patients }) => {
       </div>
 
       {filteredPatients.length === 0 && (
-        <div style={{ 
-          textAlign: 'center', 
-          padding: '40px', 
-          color: '#64748b',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0'
-        }}>
-          <Users size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+        <div className="empty-state">
+          <Users size={64} />
+          <h3>No patients found</h3>
           <p>No patients found matching your search criteria.</p>
         </div>
       )}
