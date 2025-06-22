@@ -25,9 +25,7 @@ if not MONGODB_URI:
     sys.exit(1) # Exit the application if essential configuration is missing
 
 try:
-    client = MongoClient(
-        MONGODB_URI
-    )
+    client = MongoClient(MONGODB_URI)
     
     db = client["porter_db"]  # Replace with your actual database name
     # Optional: Test connection to MongoDB
